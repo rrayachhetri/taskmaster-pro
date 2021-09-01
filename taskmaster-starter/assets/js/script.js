@@ -177,7 +177,6 @@ $(".list-group").on("blur", "input[type='text']", function () {
 
 $(".card .list-group").sortable({
   connectWith: $(".card .list-group"),
-  connectWith: $(".card .list-group"),
   scroll: false,
   tolerance: "pointer",
   helper: "clone",
@@ -194,6 +193,8 @@ $(".card .list-group").sortable({
     console.log("out", event.target);
   },
   update: function (event) {
+    //array to store the task data in
+    var tempArr = [];
     // loop over current set of children in sortable list
     $(this).children().each(function () {
       var text =  $(this)
@@ -206,12 +207,38 @@ $(".card .list-group").sortable({
       .text()
       .trim();
     
-      console.log(text, date);
-    
+      //add task data to the temp array as an object
+      tempArr.push({
+        text: text,
+        date: date
+      });    
     });
+    console.log(tempArr);
+    //trim down list's ID to match object property
+    var arrName = $(this)
+    .attr("id")
+    .replace("list-", "");
+
+    //update array on the tasks object and save
+    tasks[arrName] = tempArr;
+    saveTasks();
   }
 });
 
+$("#trash").droppable({
+  accept: ".card .list-group-item",
+  tolerance: "touch",
+  drop : function(event, ui){
+    console.log("drop");
+    ui.draggable.remove();
+  },
+  over: function(event, ui){
+    console.log("over");
+  },
+  out: function (event, ui) {
+    console.log("out");
+  }
+});
 // remove all tasks
 $("#remove-tasks").on("click", function () {
   for (var key in tasks) {
