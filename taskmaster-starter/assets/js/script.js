@@ -13,9 +13,28 @@ var createTask = function (taskText, taskDate, taskList) {
   // append span and p element to parent li
   taskLi.append(taskSpan, taskP);
 
+  //check due date
+  auditTask(taskLi);
 
   // append to ul list on the page
   $("#list-" + taskList).append(taskLi);
+};
+
+var auditTask = function (taskEl) {
+  //get date from task element 
+  var date = $(taskEl).find("span").text().trim();
+  //convert to moment objext at 5:00pm
+  var time = moment(date, "L").set("hour", 17);
+  
+  //remove any old classes from element
+
+  $(taskEl).removeClass("list-group-item warning list-group-item danger");
+
+  //apply new class if task is near/over due date
+  if(moment().isAfter(time)) {
+    $(taskEl).addClass("list-group-item danger");
+  }
+
 };
 
 var loadTasks = function () {
@@ -33,7 +52,7 @@ var loadTasks = function () {
 
   // loop over object properties
   $.each(tasks, function (list, arr) {
-    // console.log(list, arr);
+    console.log(list, arr);
     // then loop over sub-array
     arr.forEach(function (task) {
       createTask(task.text, task.date, list);
@@ -47,6 +66,9 @@ var saveTasks = function () {
 
 
 // modal was triggered
+$("#modalDueDate").datepicker({
+  minDate: 1
+});
 $("#task-form-modal").on("show.bs.modal", function () {
   // clear values
   $("#modalTaskDescription, #modalDueDate").val("");
@@ -140,12 +162,21 @@ $(".list-group").on("click", "span", function () {
   //swap out elements
   $(this).replaceWith(dateInput);
 
+  //enable jquery ui datepicker
+  dateInput.datepicker({
+    minDate: 1,
+    onClose: function (){
+   //when calender is closed, force a "change" event on the `dateInput`
+   $(this).trigger("change");
+    }
+  });
+  
   //automatically focus on new element 
   dateInput.trigger("focus");
 
 });
 //value of due date was changed
-$(".list-group").on("blur", "input[type='text']", function () {
+$(".list-group").on("change", "input[type='text']", function () {
   //get current text 
   var date = $(this)
     .text()
@@ -239,6 +270,8 @@ $("#trash").droppable({
     console.log("out");
   }
 });
+
+
 // remove all tasks
 $("#remove-tasks").on("click", function () {
   for (var key in tasks) {
